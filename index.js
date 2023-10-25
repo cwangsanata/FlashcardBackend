@@ -4,8 +4,11 @@ const app = express()
 var cors = require('cors')
 app.use(cors())
 
+// Require dotenv so we can use environment variables (rather not upload a password to GitHub)
+require("dotenv").config()
+
 // QUESTION 1. Import mongoose
-const mongoose = /* YOUR CODE HERE */
+const mongoose = require("mongoose")
 
 const bodyParser = require("body-parser")
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -14,24 +17,29 @@ app.use(bodyParser.json())
 connect().catch(err => console.log(err))
 
 async function connect() {
-  await mongoose.connect(/* YOUR CODE HERE */) // QUESTION 2. Paste your connection string here, but replace <password> with your password.
-  // Don't forget the quotation marks! Do not include the triangle brackets <> around your password.
-  // It should look something like this: "mongodb+srv://jessican1212:my_password@cluster0.5fwyzvq.mongodb.net/"
+  await mongoose.connect(process.env.MONGO_URL) // QUESTION 2. Paste your connection string here, but replace <password> with your password.
   console.log("Successfully connected to MongoDB")
 }
 
 // QUESTION 3. Create a new mongoose.Schema here with the front as a String and the back as a String. 
-const flashcardSchema = /* YOUR CODE HERE */
+const flashcardSchema = mongoose.Schema( {
+    front: String,
+    back: String
+} )
 
 // QUESTION 4. Create a new mongoose.model with the collection name 'Flashcard' as the first argument. What should the second argument be?
-const Flashcard = /* YOUR CODE HERE */
+const Flashcard = mongoose.model("Flashcard", flashcardSchema)
 
 app.post("/new", async (req, res) => {
     // QUESTION 5. Create a new Flashcard with the front as req.body.front and back as req.body.back
     // Check out the lecture slides if you are stuck!
-    const newCard = /* YOUR CODE HERE */
+    const newCard = new Flashcard({
+        front: req.body.front,
+        back: req.body.back
+    })
     
-    /* YOUR CODE HERE */ //QUESTION 6. Save newCard to the database using the .save() method. Remember that this function is asynchronous!
+    //QUESTION 6. Save newCard to the database using the .save() method. Remember that this function is asynchronous!
+    await newCard.save()
     res.json(newCard)
 })
 
@@ -39,7 +47,7 @@ app.post("/new", async (req, res) => {
 // Check out the lecture slides, specifically slide 28! Don't forget the await keyword.
 app.get("/cards", async (req, res) => {
     let id = req.params.id
-    const foundCards = /* YOUR CODE HERE */
+    const foundCards = await Flashcard.find()
     res.send(foundCards)
 })
 
@@ -47,7 +55,7 @@ app.get("/cards", async (req, res) => {
 // Check out the lecture slides, specifically slide 28! Don't forget the await keyword.
 app.get("/card/:id", async (req, res) => {
     let id = req.params.id
-    const foundCard = /* YOUR CODE HERE */
+    const foundCard = await Flashcard.findById(id)
     res.send(foundCard)
 })
 
@@ -57,7 +65,7 @@ app.get("/card/:id", async (req, res) => {
 // Hint: Don't forget the await keyword.
 app.get("/delete/:id", async (req, res) => {
     let id = req.params.id
-    const foundCard = /* YOUR CODE HERE */
+    const foundCard = await Flashcard.findByIdAndDelete(id)
     res.send(foundCard)
 })
 
